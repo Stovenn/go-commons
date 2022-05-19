@@ -1,7 +1,7 @@
 package main
 
 import (
-	"go-commons/zipwritter"
+	"github.com/stovenn/go-commons/zipwritter"
 	"log"
 )
 
