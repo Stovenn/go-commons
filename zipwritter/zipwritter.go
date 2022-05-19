@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -29,7 +30,8 @@ func (am *archiveManager) Zip(targetfolder string, filePaths ...string) error {
 		}
 	}
 
-	increment := findNextNumber(targetfolder) 
+	increment := findNextNumber(targetfolder)
+	log.Println(increment)
 
 	log.Println("Creating archive...")
 	archive, err := os.Create(targetfolder + "/archive_" + increment + ".zip")
@@ -47,7 +49,7 @@ func (am *archiveManager) Zip(targetfolder string, filePaths ...string) error {
 		}
 		defer f1.Close()
 
-		a1, err := zr.Create("archive_"+ increment + "/" + f1.Name())
+		a1, err := zr.Create("archive_" + increment + "/" + f1.Name())
 		if err != nil {
 			os.Remove(targetfolder)
 			return err
@@ -86,16 +88,33 @@ func findNextNumber(path string) string {
 		log.Fatal(err)
 	}
 
-	lastFileName := strings.TrimSuffix(xd[len(xd)-1].Name(), ".zip")
-
-	num, err := strconv.Atoi(strings.Split(lastFileName,"_")[1])
-	if err != nil {
-		log.Fatal(err)
+	for _, v := range xd {
+		log.Println(v.Name())
 	}
 
-	//gerer le changement d'unite 
+	var lastFilename string
 
-	num++
+	if len(xd) != 0 {
+		sort.SliceStable(xd, func(i, j int) bool {
+			return xd[i].Name() < xd[j].Name()
+		})
 
-	return "00" + strconv.Itoa(num)
+		lastFilename = strings.TrimSuffix(xd[len(xd)-1].Name(), ".zip")
+	}
+
+	num := 1
+
+	if lastFilename != "" {
+		num, err = strconv.Atoi(strings.Split(lastFilename, "_")[1])
+		if err != nil {
+			log.Fatal(err)
+		}
+		num++
+	}
+
+	numstring := strconv.Itoa(num)
+
+	offset := 3 - len(numstring)
+
+	return strings.Repeat("0", offset) + numstring
 }
